@@ -229,11 +229,14 @@ Write your track review here. Keep it concise but descriptive. Focus on the soun
         
         # Write to file
         output_filename = f"{sanitized_title}.md"
-        with open(output_filename, 'w') as f:
+        base_path = os.path.expanduser(os.getenv('MARKDOWN_OUTPUT_PATH'))
+        filepath = os.path.join(base_path, output_filename)
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        with open(filepath, 'w') as f:
             f.write(content)
         
-        print(f"Markdown file saved to: {os.path.abspath(output_filename)}")
-        return output_filename, title, artist
+        print(f"Markdown file saved to: {filepath}")
+        return filepath, title, artist
         
     except Exception as e:
         print(f"Error during scraping: {str(e)}")
