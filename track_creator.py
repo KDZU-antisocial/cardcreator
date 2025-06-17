@@ -259,15 +259,26 @@ def main():
     if new_content:
         content = content.replace(placeholder, "\n".join(new_content))
     
+    # Prompt for track review
+    print("\nWrite your track review (press Enter THREE TIMES to finish):")
+    print("Keep it concise but descriptive. Focus on the sound, mood, and impact of the track.")
+    review_lines = []
+    while True:
+        line = input()
+        if line == "" and review_lines and review_lines[-1] == "":
+            break
+        review_lines.append(line)
+    
+    # Join the review lines and remove the last empty line
+    review = "\n".join(review_lines[:-1])
+    
+    # Replace the review placeholder with the actual review
+    content = content.replace("Write your track review here. Keep it concise but descriptive. Focus on the sound, mood, and impact of the track.", review)
+    
     with open(output_file, 'w') as f:
         f.write(content)
     
-    print("\nTrack review prompt:")
-    print("Write a concise review (around 80 characters) focusing on:")
-    print("- The track's unique sound and production style")
-    print("- The mood and atmosphere it creates")
-    print("- Its impact and how it fits into the artist's discography")
-    print("- Any notable elements that make it stand out")
+    print(f"\nReview has been added to {output_file}")
 
 if __name__ == "__main__":
     main() 

@@ -12,4 +12,4 @@ youtube: "https://www.youtube.com/watch?v=B8hLB7C743A"
 spotify: "https://open.spotify.com/track/3s3sIOYsUb05l6NZRL5yJa"
 ---
 
-Write your track review here. Keep it concise but descriptive. Focus on the sound, mood, and impact of the track.
+A classic Pinch dubstep horrorshow. If John Carpenter directed Predator this would be the outro track to the film.
