@@ -22,13 +22,17 @@ def get_pacific_time():
     return datetime.now(pacific).strftime('%Y-%m-%d')
 
 def download_image(url, filename):
-    response = requests.get(url, stream=True)
-    if response.status_code == 200:
-        with open(filename, 'wb') as f:
-            response.raw.decode_content = True
-            shutil.copyfileobj(response.raw, f)
-        return True
-    return False
+    """Download image from URL and save to specified path."""
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            image_path = os.path.join(os.getenv('IMAGE_OUTPUT_PATH'), filename)
+            with open(image_path, 'wb') as f:
+                f.write(response.content)
+            return image_path
+    except Exception as e:
+        print(f"Error downloading image: {e}")
+    return None
 
 def extract_label_from_url(url):
     parsed = urlparse(url)
@@ -61,6 +65,43 @@ def search_spotify(query, client_id, client_secret):
 def sanitize_filename(name):
     # Only allow letters, numbers, underscores, and dashes
     return re.sub(r'[^a-zA-Z0-9_-]', '', name.replace(' ', '_'))
+
+def validate_paths():
+    """Validate that required paths exist and are writable."""
+    markdown_path = os.path.expanduser(os.getenv('MARKDOWN_OUTPUT_PATH', ''))
+    image_path = os.path.expanduser(os.getenv('IMAGE_OUTPUT_PATH', ''))
+    
+    if not markdown_path or not image_path:
+        print("Error: MARKDOWN_OUTPUT_PATH and IMAGE_OUTPUT_PATH must be set in .env file")
+        return False
+    
+    # Check if paths exist
+    if not os.path.exists(markdown_path):
+        print(f"Error: Markdown output path does not exist: {markdown_path}")
+        return False
+        
+    if not os.path.exists(image_path):
+        print(f"Error: Image output path does not exist: {image_path}")
+        return False
+    
+    # Check if paths are writable
+    try:
+        # Test markdown path
+        test_file = os.path.join(markdown_path, '.write_test')
+        with open(test_file, 'w') as f:
+            f.write('test')
+        os.remove(test_file)
+        
+        # Test image path
+        test_file = os.path.join(image_path, '.write_test')
+        with open(test_file, 'w') as f:
+            f.write('test')
+        os.remove(test_file)
+    except Exception as e:
+        print(f"Error: Paths are not writable: {e}")
+        return False
+    
+    return True
 
 def create_track_file(url):
     # Set up Chrome options
@@ -202,7 +243,11 @@ Write your track review here. Keep it concise but descriptive. Focus on the soun
             pass
 
 def main():
+    # Load environment variables and validate paths
     load_dotenv()
+    if not validate_paths():
+        return
+        
     url = input("Enter the Bandcamp track URL: ")
     
     # Create the track file and get title/artist
