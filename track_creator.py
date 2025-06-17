@@ -31,6 +31,7 @@ def download_image(url, filename):
             os.makedirs(os.path.dirname(full_path), exist_ok=True)
             with open(full_path, 'wb') as f:
                 f.write(response.content)
+            print(f"Image saved to: {full_path}")
             return full_path
     except Exception as e:
         print(f"Error downloading image: {e}")
@@ -231,6 +232,7 @@ Write your track review here. Keep it concise but descriptive. Focus on the soun
         with open(output_filename, 'w') as f:
             f.write(content)
         
+        print(f"Markdown file saved to: {os.path.abspath(output_filename)}")
         return output_filename, title, artist
         
     except Exception as e:
