@@ -65,17 +65,19 @@ def create_track_file(url):
     soup = BeautifulSoup(response.text, 'html.parser')
     
     # Extract information
-    title = soup.find('h2', class_='trackTitle').text.strip() if soup.find('h2', class_='trackTitle') else "Bmptbmp (2025 Rework)"
-    artist = soup.find('span', class_='artist').text.strip() if soup.find('span', class_='artist') else "James Shinra"
-    artist_link = soup.find('span', class_='artist').find('a')['href'] if soup.find('span', class_='artist') else "https://analogicalforce.bandcamp.com"
+    title = soup.find('h2', class_='trackTitle').text.strip() if soup.find('h2', class_='trackTitle') else "Unknown Title"
+    artist = soup.find('span', class_='artist').text.strip() if soup.find('span', class_='artist') else "Unknown Artist"
+    artist_link = soup.find('span', class_='artist').find('a')['href'] if soup.find('span', class_='artist') else ""
     
     # Get label from URL
     label = extract_label_from_url(url)
     label_link = url.split('/track/')[0]
     
+    # Sanitize file name for image and markdown
+    sanitized_title = sanitize_filename(title.lower())
+    image_filename = f"images/tracks/{sanitized_title}.jpg"
     # Get hero image
     hero_image = soup.find('a', class_='popupImage')['href'] if soup.find('a', class_='popupImage') else "https://f4.bcbits.com/img/a1234567890_16.jpg"
-    image_filename = f"images/tracks/{sanitize_filename(title.lower())}.jpg"
     download_image(hero_image, image_filename)
     
     # Get today's date in Pacific time
@@ -99,27 +101,30 @@ Write your track review here. Keep it concise but descriptive. Focus on the soun
 """
     
     # Write to file
-    output_filename = f"{sanitize_filename(title.lower())}.md"
+    output_filename = f"{sanitized_title}.md"
     with open(output_filename, 'w') as f:
         f.write(content)
     
-    return output_filename
+    return output_filename, title, artist
 
 def main():
     load_dotenv()
-    url = "https://analogicalforce.bandcamp.com/track/bmptbmp-2025-rework"
+    url = input("Enter the Bandcamp track URL: ")
     
-    # Create the track file
-    output_file = create_track_file(url)
+    # Create the track file and get title/artist
+    output_file, title, artist = create_track_file(url)
     print(f"Created track file: {output_file}")
+    
+    # Build search query from scraped title and artist
+    search_query = f"{title} {artist}"
     
     # Search YouTube using API
     api_key = os.getenv('YOUTUBE_API_KEY')
     if api_key:
         print("\nYouTube search results:")
-        youtube_results = search_youtube_api("Bmptbmp James Shinra", api_key)
-        for i, (title, channel, link) in enumerate(youtube_results, 1):
-            print(f"{i}. {title} - {channel}: {link}")
+        youtube_results = search_youtube_api(search_query, api_key)
+        for i, (yt_title, channel, link) in enumerate(youtube_results, 1):
+            print(f"{i}. {yt_title} - {channel}: {link}")
         youtube_choice = int(input("Select a YouTube video (1-5): ")) - 1
         youtube_link = youtube_results[youtube_choice][2]
     else:
@@ -131,9 +136,9 @@ def main():
     client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
     if client_id and client_secret:
         print("\nSpotify search results:")
-        spotify_results = search_spotify("Bmptbmp James Shinra", client_id, client_secret)
-        for i, (name, link) in enumerate(spotify_results, 1):
-            print(f"{i}. {name}: {link}")
+        spotify_results = search_spotify(search_query, client_id, client_secret)
+        for i, (sp_title, link) in enumerate(spotify_results, 1):
+            print(f"{i}. {sp_title}: {link}")
         spotify_choice = int(input("Select a Spotify track (1-5): ")) - 1
         spotify_link = spotify_results[spotify_choice][1]
     else:
