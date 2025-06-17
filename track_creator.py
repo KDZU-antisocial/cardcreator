@@ -26,10 +26,12 @@ def download_image(url, filename):
     try:
         response = requests.get(url)
         if response.status_code == 200:
-            image_path = os.path.join(os.path.expanduser(os.getenv('IMAGE_OUTPUT_PATH')), filename)
-            with open(image_path, 'wb') as f:
+            base_path = os.path.expanduser(os.getenv('IMAGE_OUTPUT_PATH'))
+            full_path = os.path.join(base_path, filename)
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+            with open(full_path, 'wb') as f:
                 f.write(response.content)
-            return image_path
+            return full_path
     except Exception as e:
         print(f"Error downloading image: {e}")
     return None
