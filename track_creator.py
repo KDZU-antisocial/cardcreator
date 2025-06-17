@@ -27,7 +27,7 @@ def download_image(url, filename):
         response = requests.get(url)
         if response.status_code == 200:
             base_path = os.path.expanduser(os.getenv('IMAGE_OUTPUT_PATH'))
-            full_path = os.path.join(base_path, filename)
+            full_path = os.path.join(base_path, os.path.basename(filename))
             os.makedirs(os.path.dirname(full_path), exist_ok=True)
             with open(full_path, 'wb') as f:
                 f.write(response.content)
@@ -170,7 +170,7 @@ def create_track_file(url):
         if title == "Unknown Title":
             print("\nError: Could not find track title. Please check the URL and try again.")
             return None, None, None
-            
+        
         if artist == "Unknown Artist":
             print("\nError: Could not find artist name. Please check the URL and try again.")
             return None, None, None
@@ -219,9 +219,9 @@ labelLink: "{label_link}"
 heroImage: "{image_filename}"
 pubDate: {pub_date}
 bandcamp: "{url}"
+---
 
 # YouTube and Spotify links will be added after selection
----
 
 Write your track review here. Keep it concise but descriptive. Focus on the sound, mood, and impact of the track.
 """
