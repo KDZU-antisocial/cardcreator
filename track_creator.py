@@ -10,6 +10,12 @@ import shutil
 from urllib.parse import urlparse, quote_plus
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.os_manager import ChromeType
+import time
 
 def get_pacific_time():
     pacific = pytz.timezone('US/Pacific')
@@ -57,34 +63,111 @@ def sanitize_filename(name):
     return re.sub(r'[^a-zA-Z0-9_-]', '', name.replace(' ', '_'))
 
 def create_track_file(url):
-    # Fetch the webpage
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    
-    # Extract information
-    title = soup.find('h2', class_='trackTitle').text.strip() if soup.find('h2', class_='trackTitle') else "Unknown Title"
-    artist = soup.find('span', class_='artist').text.strip() if soup.find('span', class_='artist') else "Unknown Artist"
-    artist_link = soup.find('span', class_='artist').find('a')['href'] if soup.find('span', class_='artist') else ""
-    
-    # Get label from URL
-    label = extract_label_from_url(url)
-    label_link = url.split('/track/')[0]
-    
-    # Sanitize file name for image and markdown
-    sanitized_title = sanitize_filename(title.lower())
-    image_filename = f"images/tracks/{sanitized_title}.jpg"
-    # Get hero image
-    hero_image = soup.find('a', class_='popupImage')['href'] if soup.find('a', class_='popupImage') else "https://f4.bcbits.com/img/a1234567890_16.jpg"
-    download_image(hero_image, image_filename)
-    
-    # Get today's date in Pacific time
-    pub_date = get_pacific_time()
-    
-    # Create the markdown content
-    content = f"""---
+    # Set up Chrome options
+    chrome_options = Options()
+    chrome_options.add_argument('--headless=new')  # Use new headless mode
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    chrome_options.add_argument('--disable-gpu')
+    chrome_options.add_argument('--window-size=1920,1080')
+    chrome_options.add_argument('--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36')
+
+    try:
+        # Initialize the Chrome driver with specific configuration for Mac ARM64
+        service = Service()
+        driver = webdriver.Chrome(options=chrome_options)
+        
+        # Load the page
+        print(f"Loading URL: {url}")
+        driver.get(url)
+        
+        # Wait for the page to load
+        time.sleep(3)
+        
+        # Get the page source
+        page_source = driver.page_source
+        soup = BeautifulSoup(page_source, 'html.parser')
+        
+        # Find the name-section div
+        name_section = soup.find('div', id='name-section')
+        
+        # Extract title from h2 in name-section
+        title = "Unknown Title"
+        artist = "Unknown Artist"
+        artist_link = ""
+        
+        if name_section:
+            # Get title from h2
+            title_element = name_section.find('h2', class_='trackTitle')
+            if title_element:
+                # Clean up title text
+                title = ' '.join(title_element.text.split())
+            
+            # Get artist from h3.albumTitle
+            album_title = name_section.find('h3', class_='albumTitle')
+            if album_title:
+                # Find all spans in the album title
+                spans = album_title.find_all('span')
+                # The last span contains the artist link
+                if spans:
+                    last_span = spans[-1]
+                    artist_link_element = last_span.find('a')
+                    if artist_link_element:
+                        # Clean up artist name and link
+                        artist = ' '.join(artist_link_element.text.split())
+                        artist_link = artist_link_element['href'].strip()
+        
+        # Debug print statements
+        print("Raw HTML for name-section:", name_section)
+        print(f"Scraped Title: {title}")
+        print(f"Scraped Artist: {artist}")
+        print(f"Scraped Artist Link: {artist_link}")
+        
+        # Validate required information
+        if title == "Unknown Title":
+            print("\nError: Could not find track title. Please check the URL and try again.")
+            return None, None, None
+            
+        if artist == "Unknown Artist":
+            print("\nError: Could not find artist name. Please check the URL and try again.")
+            return None, None, None
+            
+        if not artist_link:
+            print("\nError: Could not find artist link. Please check the URL and try again.")
+            return None, None, None
+        
+        # Get label from URL
+        label = extract_label_from_url(url)
+        label_link = url.split('/track/')[0]
+        
+        # Sanitize file name for image and markdown
+        sanitized_title = sanitize_filename(title.lower())
+        image_filename = f"images/tracks/{sanitized_title}.jpg"
+        
+        # Get hero image with more reliable selector
+        hero_image = None
+        image_element = soup.find('a', class_='popupImage') or soup.find('div', class_='tralbumArt')
+        if image_element:
+            if image_element.name == 'a':
+                hero_image = image_element['href']
+            else:
+                img_tag = image_element.find('img')
+                if img_tag and 'src' in img_tag.attrs:
+                    hero_image = img_tag['src']
+        
+        if not hero_image:
+            hero_image = "https://f4.bcbits.com/img/a1234567890_16.jpg"
+        
+        # Create images/tracks directory if it doesn't exist
+        os.makedirs('images/tracks', exist_ok=True)
+        
+        download_image(hero_image, image_filename)
+        
+        # Get today's date in Pacific time
+        pub_date = get_pacific_time()
+        
+        # Create the markdown content
+        content = f"""---
 title: "{title}"
 artist: "{artist}"
 artistLink: "{artist_link}"
@@ -99,13 +182,24 @@ bandcamp: "{url}"
 
 Write your track review here. Keep it concise but descriptive. Focus on the sound, mood, and impact of the track.
 """
-    
-    # Write to file
-    output_filename = f"{sanitized_title}.md"
-    with open(output_filename, 'w') as f:
-        f.write(content)
-    
-    return output_filename, title, artist
+        
+        # Write to file
+        output_filename = f"{sanitized_title}.md"
+        with open(output_filename, 'w') as f:
+            f.write(content)
+        
+        return output_filename, title, artist
+        
+    except Exception as e:
+        print(f"Error during scraping: {str(e)}")
+        return None, None, None
+        
+    finally:
+        # Always close the driver
+        try:
+            driver.quit()
+        except:
+            pass
 
 def main():
     load_dotenv()
@@ -113,6 +207,10 @@ def main():
     
     # Create the track file and get title/artist
     output_file, title, artist = create_track_file(url)
+    if not output_file or not title or not artist:
+        print("\nScript stopped due to missing required information.")
+        return
+        
     print(f"Created track file: {output_file}")
     
     # Build search query from scraped title and artist
@@ -149,10 +247,17 @@ def main():
     with open(output_file, 'r') as f:
         content = f.read()
     
+    # Replace the placeholder with both YouTube and Spotify links if available
+    placeholder = "# YouTube and Spotify links will be added after selection"
+    new_content = []
+    
     if youtube_link:
-        content = content.replace("# YouTube and Spotify links will be added after selection", f"youtube: \"{youtube_link}\"")
+        new_content.append(f"youtube: \"{youtube_link}\"")
     if spotify_link:
-        content = content.replace("# YouTube and Spotify links will be added after selection", f"spotify: \"{spotify_link}\"")
+        new_content.append(f"spotify: \"{spotify_link}\"")
+    
+    if new_content:
+        content = content.replace(placeholder, "\n".join(new_content))
     
     with open(output_file, 'w') as f:
         f.write(content)
