@@ -26,7 +26,7 @@ def download_image(url, filename):
     try:
         response = requests.get(url)
         if response.status_code == 200:
-            image_path = os.path.join(os.getenv('IMAGE_OUTPUT_PATH'), filename)
+            image_path = os.path.join(os.path.expanduser(os.getenv('IMAGE_OUTPUT_PATH')), filename)
             with open(image_path, 'wb') as f:
                 f.write(response.content)
             return image_path
