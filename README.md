@@ -57,14 +57,15 @@ IMAGE_OUTPUT_PATH=path/to/image/files
 
 Run the script with a Bandcamp URL:
 ```bash
-python track_creator.py "https://bandcamp.com/track/your-track-url"
+python card_creator.py
 ```
 
 The script will:
-1. Scrape track information from Bandcamp
-2. Download the track artwork
-3. Generate a markdown file with frontmatter
-4. Save files to the configured output paths
+1. Prompt you for a Bandcamp track URL
+2. Scrape track information from Bandcamp
+3. Download the track artwork
+4. Generate a markdown file with frontmatter
+5. Save files to the configured output paths
 
 ## Project Structure
 
@@ -76,7 +77,7 @@ cardcreator/
 ├── .env_template          # Template for environment variables
 ├── requirements.in        # Direct dependencies
 ├── requirements.txt       # Locked dependencies
-├── track_creator.py       # Main script
+├── card_creator.py        # Main script
 └── _track.md.template     # Markdown template
 ```
 

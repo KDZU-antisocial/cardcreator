@@ -118,8 +118,9 @@ def create_track_file(url):
 
     try:
         # Initialize the Chrome driver with specific configuration for Mac ARM64
-        service = Service()
-        driver = webdriver.Chrome(options=chrome_options)
+        chromedriver_path = os.path.expanduser("~/.wdm/drivers/chromedriver/mac64/137.0.7151.119/chromedriver-mac-arm64/chromedriver")
+        service = Service(chromedriver_path)
+        driver = webdriver.Chrome(service=service, options=chrome_options)
         
         # Load the page
         print(f"Loading URL: {url}")
@@ -186,7 +187,7 @@ def create_track_file(url):
         
         # Sanitize file name for image and markdown
         sanitized_title = sanitize_filename(title.lower())
-        image_filename = f"images/tracks/{sanitized_title}.jpg"
+        image_filename = f"{sanitized_title}.jpg"
         
         # Get hero image with more reliable selector
         hero_image = None
