@@ -217,7 +217,7 @@ artist: "{artist}"
 artistLink: "{artist_link}"
 label: "{label}"
 labelLink: "{label_link}"
-heroImage: "{image_filename}"
+heroImage: "https://static.kdzu.org/images/tracks/{image_filename}"
 pubDate: {pub_date}
 bandcamp: "{url}"
 ---
