@@ -220,9 +220,9 @@ labelLink: "{label_link}"
 heroImage: "https://static.kdzu.org/images/tracks/{image_filename}"
 pubDate: {pub_date}
 bandcamp: "{url}"
+youtube: ""
+spotify: ""
 ---
-
-# YouTube and Spotify links will be added after selection
 
 Write your track review here. Keep it concise but descriptive. Focus on the sound, mood, and impact of the track.
 """
@@ -299,17 +299,11 @@ def main():
     with open(output_file, 'r') as f:
         content = f.read()
     
-    # Replace the placeholder with both YouTube and Spotify links if available
-    placeholder = "# YouTube and Spotify links will be added after selection"
-    new_content = []
-    
+    # Replace the empty YouTube and Spotify links in the frontmatter
     if youtube_link:
-        new_content.append(f"youtube: \"{youtube_link}\"")
+        content = content.replace('youtube: ""', f'youtube: "{youtube_link}"')
     if spotify_link:
-        new_content.append(f"spotify: \"{spotify_link}\"")
-    
-    if new_content:
-        content = content.replace(placeholder, "\n".join(new_content))
+        content = content.replace('spotify: ""', f'spotify: "{spotify_link}"')
     
     # Prompt for track review
     print("\nWrite your track review (press Enter THREE TIMES to finish):")
