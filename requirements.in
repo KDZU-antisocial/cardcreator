@@ -1,0 +1,9 @@
+beautifulsoup4
+requests
+python-dateutil
+pytz
+spotipy
+python-dotenv
+google-api-python-client
+selenium
+webdriver-manager 
