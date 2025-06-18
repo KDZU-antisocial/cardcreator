@@ -16,6 +16,7 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.os_manager import ChromeType
 import time
+from instagram_poster import create_instagram_post
 
 def get_pacific_time():
     pacific = pytz.timezone('US/Pacific')
@@ -326,6 +327,31 @@ def main():
         f.write(content)
     
     print(f"\nReview has been added to {output_file}")
+    
+    # Ask if user wants to post to Instagram
+    post_to_instagram = input("\nWould you like to post this track to Instagram? (y/n): ").lower().strip() == 'y'
+    
+    if post_to_instagram:
+        # Get the image path from the markdown content
+        image_filename = os.path.basename(output_file).replace('.md', '.jpg')
+        image_path = os.path.join(os.path.expanduser(os.getenv('IMAGE_OUTPUT_PATH')), image_filename)
+        
+        if os.path.exists(image_path):
+            success = create_instagram_post(
+                image_path=image_path,
+                title=title,
+                artist=artist,
+                review=review,
+                bandcamp_url=url,
+                spotify_url=spotify_link,
+                youtube_url=youtube_link
+            )
+            if success:
+                print("Successfully posted to Instagram!")
+            else:
+                print("Failed to post to Instagram. Check the error message above.")
+        else:
+            print(f"Error: Image file not found at {image_path}")
 
 if __name__ == "__main__":
     main() 
