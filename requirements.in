@@ -6,4 +6,5 @@ spotipy
 python-dotenv
 google-api-python-client
 selenium
-webdriver-manager 
+webdriver-manager
+instagrapi 
