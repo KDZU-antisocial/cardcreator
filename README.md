@@ -11,8 +11,9 @@ A Python tool for automatically creating track review cards from Bandcamp URLs. 
 - Configurable output paths for images and markdown files
 - Uses modern Python tooling (uv, pip-tools)
 - Integrates with KDZU Astro website for track reviews
-- Automatically posts track reviews to Instagram with custom hashtags
-- Automatically posts track reviews to Mastodon with custom hashtags
+- **Automatically posts track reviews to Instagram, Mastodon, and Bluesky with custom hashtags**
+- **All social media posters read directly from the generated markdown files**
+- **Advanced social media features**: Clickable URLs, hashtags, and image uploads
 
 ## Prerequisites
 
@@ -20,6 +21,7 @@ A Python tool for automatically creating track review cards from Bandcamp URLs. 
 - Chrome browser (for Selenium)
 - Instagram account (for posting)
 - Mastodon account (for posting)
+- Bluesky account (for posting)
 - API keys for:
   - Spotify (optional)
   - YouTube (optional)
@@ -57,8 +59,10 @@ MARKDOWN_OUTPUT_PATH=path/to/markdown/files
 IMAGE_OUTPUT_PATH=path/to/image/files
 INSTAGRAM_USERNAME=your_instagram_username
 INSTAGRAM_PASSWORD=your_instagram_password
-MASTODON_URL=https://mastodon.social
+MASTODON_URL=your_mastodon_instance_url_here
 MASTODON_ACCESS_TOKEN=your_mastodon_access_token_here
+BLUESKY_HANDLE=your_handle.bsky.social
+BLUESKY_PASSWORD=your_bluesky_password_here
 ```
 
 ## Usage
@@ -74,12 +78,58 @@ The script will:
 3. Download the track artwork
 4. Generate a markdown file with frontmatter
 5. Save files to the configured output paths
-6. Ask if you want to post to Instagram
+6. Ask if you want to post to Instagram, Mastodon, and/or Bluesky
 7. If yes, prompt for custom hashtags
-8. Post to Instagram with the track artwork and review
-9. Ask if you want to post to Mastodon
-10. If yes, prompt for custom hashtags
-11. Post to Mastodon with the track artwork and review
+8. **Read the generated markdown file to create posts with track artwork and review**
+
+### Social Media Integration
+
+**All three social media platforms (Instagram, Mastodon, Bluesky) read directly from the generated markdown files.** This means:
+
+- **Consistent data**: All posts use the same track information, review, and artwork
+- **Standalone posting**: You can run the poster scripts independently with any markdown file
+- **Flexible workflow**: Post immediately after creation or later using the markdown file path
+- **Advanced formatting**: Each platform uses optimized formatting for best user experience
+
+#### Platform-Specific Features
+
+**Instagram:**
+- Posts track artwork as main image
+- Uses "link in bio" approach for streaming services
+- Custom hashtag support
+- Optimized caption formatting
+
+**Mastodon:**
+- Posts track artwork with alt text
+- Direct clickable URLs to streaming services
+- Custom hashtag support
+- Includes KDZU tracks page link
+- Configurable tracks page URL via `MORE_TRACKS_URL` environment variable
+
+**Bluesky:**
+- Posts track artwork with alt text
+- Advanced rich text formatting with clickable URLs and hashtags
+- Character limit handling (300 character limit)
+- Labeled links (BC:, Spot:, YT:, KDZU:)
+- Uses AT Protocol facets for optimal formatting
+- Configurable tracks page URL via `MORE_TRACKS_URL` environment variable
+
+#### Standalone Usage
+
+You can also post to social media independently using any markdown file:
+
+```bash
+# Post to Instagram
+python instagram_poster.py
+
+# Post to Mastodon  
+python mastodon_poster.py
+
+# Post to Bluesky
+python bluesky_poster.py
+```
+
+Each script will prompt you for the path to a markdown file and create a post using that data.
 
 ### Instagram Post Format
 
@@ -124,6 +174,37 @@ YouTube: https://www.youtube.com/watch?v=...
 #your #custom #hashtags #here
 ```
 
+### Bluesky Post Format
+
+The Bluesky post will include:
+- Track artwork as the main image with alt text
+- Track title and artist name
+- Your track review (truncated if needed to fit 300 character limit)
+- Labeled clickable links to streaming services
+- Custom hashtags that you provide
+- KDZU tracks page link
+
+Example post:
+```
+Track Title by Artist Name
+
+Your track review here.
+
+#your #custom #hashtags #here
+
+BC: https://artist.bandcamp.com/track/track-name
+Spot: https://open.spotify.com/track/...
+YT: https://www.youtube.com/watch?v=...
+KDZU: https://kdzu.org/tracks-we-love
+```
+
+**Features:**
+- **Character limit handling**: Automatically truncates posts to fit Bluesky's 300 character limit
+- **Clickable URLs**: All links are properly formatted and clickable
+- **Clickable hashtags**: Hashtags are properly formatted and clickable
+- **Labeled links**: Clear labels (BC:, Spot:, YT:, KDZU:) for easy identification
+- **Image support**: Track artwork uploaded with proper alt text
+
 ## Project Structure
 
 ```
@@ -136,6 +217,7 @@ cardcreator/
 ├── card_creator.py        # Main script
 ├── instagram_poster.py    # Instagram posting functionality
 ├── mastodon_poster.py     # Mastodon posting functionality
+├── bluesky_poster.py      # Bluesky posting functionality
 └── _track.md.template     # Markdown template
 ```
 
@@ -164,11 +246,14 @@ Required environment variables:
 - `INSTAGRAM_PASSWORD`: Your Instagram password
 - `MASTODON_URL`: Your Mastodon instance URL (e.g., https://mastodon.social)
 - `MASTODON_ACCESS_TOKEN`: Your Mastodon access token
+- `BLUESKY_HANDLE`: Your Bluesky handle (e.g., username.bsky.social)
+- `BLUESKY_PASSWORD`: Your Bluesky password
 
 Optional environment variables:
 - `SPOTIPY_CLIENT_ID`: Spotify API client ID
 - `SPOTIPY_CLIENT_SECRET`: Spotify API client secret
 - `YOUTUBE_API_KEY`: YouTube API key
+- `MORE_TRACKS_URL`: URL for your tracks page (used in Mastodon and Bluesky posts)
 
 ## Contributing
 
@@ -190,6 +275,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Google API Client for YouTube integration
 - Instagrapi for Instagram integration
 - Mastodon.py for Mastodon integration
+- atproto for Bluesky integration
 
 ## Website Integration
 
