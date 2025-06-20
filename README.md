@@ -11,8 +11,9 @@ A Python tool for automatically creating track review cards from Bandcamp URLs. 
 - Configurable output paths for images and markdown files
 - Uses modern Python tooling (uv, pip-tools)
 - Integrates with KDZU Astro website for track reviews
-- Automatically posts track reviews to Instagram, Mastodon, and Bluesky with custom hashtags
-- All social media posters read directly from the generated markdown files
+- **Automatically posts track reviews to Instagram, Mastodon, and Bluesky with custom hashtags**
+- **All social media posters read directly from the generated markdown files**
+- **Advanced social media features**: Clickable URLs, hashtags, and image uploads
 
 ## Prerequisites
 
@@ -88,6 +89,30 @@ The script will:
 - **Consistent data**: All posts use the same track information, review, and artwork
 - **Standalone posting**: You can run the poster scripts independently with any markdown file
 - **Flexible workflow**: Post immediately after creation or later using the markdown file path
+- **Advanced formatting**: Each platform uses optimized formatting for best user experience
+
+#### Platform-Specific Features
+
+**Instagram:**
+- Posts track artwork as main image
+- Uses "link in bio" approach for streaming services
+- Custom hashtag support
+- Optimized caption formatting
+
+**Mastodon:**
+- Posts track artwork with alt text
+- Direct clickable URLs to streaming services
+- Custom hashtag support
+- Includes KDZU tracks page link
+- Configurable tracks page URL via `MORE_TRACKS_URL` environment variable
+
+**Bluesky:**
+- Posts track artwork with alt text
+- Advanced rich text formatting with clickable URLs and hashtags
+- Character limit handling (300 character limit)
+- Labeled links (BC:, Spot:, YT:, KDZU:)
+- Uses AT Protocol facets for optimal formatting
+- Configurable tracks page URL via `MORE_TRACKS_URL` environment variable
 
 #### Standalone Usage
 
@@ -152,11 +177,12 @@ YouTube: https://www.youtube.com/watch?v=...
 ### Bluesky Post Format
 
 The Bluesky post will include:
-- Track artwork as the main image
+- Track artwork as the main image with alt text
 - Track title and artist name
-- Your track review
-- Direct links to Bandcamp, Spotify, and YouTube
+- Your track review (truncated if needed to fit 300 character limit)
+- Labeled clickable links to streaming services
 - Custom hashtags that you provide
+- KDZU tracks page link
 
 Example post:
 ```
@@ -164,12 +190,20 @@ Track Title by Artist Name
 
 Your track review here.
 
-Listen on Bandcamp: https://artist.bandcamp.com/track/track-name
-Spotify: https://open.spotify.com/track/...
-YouTube: https://www.youtube.com/watch?v=...
-
 #your #custom #hashtags #here
+
+BC: https://artist.bandcamp.com/track/track-name
+Spot: https://open.spotify.com/track/...
+YT: https://www.youtube.com/watch?v=...
+KDZU: https://kdzu.org/tracks-we-love
 ```
+
+**Features:**
+- **Character limit handling**: Automatically truncates posts to fit Bluesky's 300 character limit
+- **Clickable URLs**: All links are properly formatted and clickable
+- **Clickable hashtags**: Hashtags are properly formatted and clickable
+- **Labeled links**: Clear labels (BC:, Spot:, YT:, KDZU:) for easy identification
+- **Image support**: Track artwork uploaded with proper alt text
 
 ## Project Structure
 
@@ -219,6 +253,7 @@ Optional environment variables:
 - `SPOTIPY_CLIENT_ID`: Spotify API client ID
 - `SPOTIPY_CLIENT_SECRET`: Spotify API client secret
 - `YOUTUBE_API_KEY`: YouTube API key
+- `MORE_TRACKS_URL`: URL for your tracks page (used in Mastodon and Bluesky posts)
 
 ## Contributing
 
