@@ -12,12 +12,14 @@ A Python tool for automatically creating track review cards from Bandcamp URLs. 
 - Uses modern Python tooling (uv, pip-tools)
 - Integrates with KDZU Astro website for track reviews
 - Automatically posts track reviews to Instagram with custom hashtags
+- Automatically posts track reviews to Mastodon with custom hashtags
 
 ## Prerequisites
 
 - Python 3.11 or higher
 - Chrome browser (for Selenium)
 - Instagram account (for posting)
+- Mastodon account (for posting)
 - API keys for:
   - Spotify (optional)
   - YouTube (optional)
@@ -55,6 +57,8 @@ MARKDOWN_OUTPUT_PATH=path/to/markdown/files
 IMAGE_OUTPUT_PATH=path/to/image/files
 INSTAGRAM_USERNAME=your_instagram_username
 INSTAGRAM_PASSWORD=your_instagram_password
+MASTODON_URL=https://mastodon.social
+MASTODON_ACCESS_TOKEN=your_mastodon_access_token_here
 ```
 
 ## Usage
@@ -73,6 +77,9 @@ The script will:
 6. Ask if you want to post to Instagram
 7. If yes, prompt for custom hashtags
 8. Post to Instagram with the track artwork and review
+9. Ask if you want to post to Mastodon
+10. If yes, prompt for custom hashtags
+11. Post to Mastodon with the track artwork and review
 
 ### Instagram Post Format
 
@@ -95,6 +102,28 @@ Link in bio 🔗
 #your #custom #hashtags #here
 ```
 
+### Mastodon Post Format
+
+The Mastodon post will include:
+- Track artwork as the main image
+- Track title and artist name
+- Your track review
+- Direct links to Bandcamp, Spotify, and YouTube
+- Custom hashtags that you provide
+
+Example post:
+```
+Track Title by Artist Name
+
+Your track review here.
+
+Listen on Bandcamp: https://artist.bandcamp.com/track/track-name
+Spotify: https://open.spotify.com/track/...
+YouTube: https://www.youtube.com/watch?v=...
+
+#your #custom #hashtags #here
+```
+
 ## Project Structure
 
 ```
@@ -106,6 +135,7 @@ cardcreator/
 ├── requirements.txt       # Locked dependencies
 ├── card_creator.py        # Main script
 ├── instagram_poster.py    # Instagram posting functionality
+├── mastodon_poster.py     # Mastodon posting functionality
 └── _track.md.template     # Markdown template
 ```
 
@@ -132,6 +162,8 @@ Required environment variables:
 - `IMAGE_OUTPUT_PATH`: Path where images will be saved
 - `INSTAGRAM_USERNAME`: Your Instagram username
 - `INSTAGRAM_PASSWORD`: Your Instagram password
+- `MASTODON_URL`: Your Mastodon instance URL (e.g., https://mastodon.social)
+- `MASTODON_ACCESS_TOKEN`: Your Mastodon access token
 
 Optional environment variables:
 - `SPOTIPY_CLIENT_ID`: Spotify API client ID
@@ -157,6 +189,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Spotipy for Spotify integration
 - Google API Client for YouTube integration
 - Instagrapi for Instagram integration
+- Mastodon.py for Mastodon integration
 
 ## Website Integration
 
