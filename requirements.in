@@ -8,4 +8,5 @@ google-api-python-client
 selenium
 webdriver-manager
 instagrapi
-mastodon.py 
+mastodon.py
+atproto 
