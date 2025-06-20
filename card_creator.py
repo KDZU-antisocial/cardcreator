@@ -26,6 +26,14 @@ except ImportError:
     MASTODON_AVAILABLE = False
     print("Note: Mastodon posting not available (mastodon.py not installed)")
 
+# Try to import bluesky_poster, but don't fail if it's not available
+try:
+    from bluesky_poster import create_bluesky_post
+    BLUESKY_AVAILABLE = True
+except ImportError:
+    BLUESKY_AVAILABLE = False
+    print("Note: Bluesky posting not available (atproto not installed)")
+
 def get_pacific_time():
     pacific = pytz.timezone('US/Pacific')
     return datetime.now(pacific).strftime('%Y-%m-%d')
@@ -388,6 +396,34 @@ def main():
                 print(f"Error: Image file not found at {image_path}")
     else:
         print("\nMastodon posting not available. Install mastodon.py to enable this feature.")
+    
+    # Ask if user wants to post to Bluesky
+    if BLUESKY_AVAILABLE:
+        post_to_bluesky = input("\nWould you like to post this track to Bluesky? (y/n): ").lower().strip() == 'y'
+        
+        if post_to_bluesky:
+            # Get the image path from the markdown content
+            image_filename = os.path.basename(output_file).replace('.md', '.jpg')
+            image_path = os.path.join(os.path.expanduser(os.getenv('IMAGE_OUTPUT_PATH')), image_filename)
+            
+            if os.path.exists(image_path):
+                success = create_bluesky_post(
+                    image_path=image_path,
+                    title=title,
+                    artist=artist,
+                    review=review,
+                    bandcamp_url=url,
+                    spotify_url=spotify_link,
+                    youtube_url=youtube_link
+                )
+                if success:
+                    print("Successfully posted to Bluesky!")
+                else:
+                    print("Failed to post to Bluesky. Check the error message above.")
+            else:
+                print(f"Error: Image file not found at {image_path}")
+    else:
+        print("\nBluesky posting not available. Install atproto to enable this feature.")
 
 if __name__ == "__main__":
     main() 

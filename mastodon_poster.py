@@ -138,6 +138,10 @@ Listen on Bandcamp: {bandcamp_url}"""
         if hashtags:
             status += f"\n\n{hashtags}"
         
+        # Add tracks web page link
+        more_tracks_url = os.getenv('MORE_TRACKS_URL', 'https://kdzu.org/tracks-we-love')
+        status += f"\n\nCheck out more tracks we love at {more_tracks_url}"
+        
         # Upload media first
         print("Uploading image to Mastodon...")
         media = mastodon.media_post(image_path, description=f"Album artwork for {title} by {artist}")
