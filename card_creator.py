@@ -18,6 +18,14 @@ from webdriver_manager.core.os_manager import ChromeType
 import time
 from instagram_poster import create_instagram_post
 
+# Try to import mastodon_poster, but don't fail if it's not available
+try:
+    from mastodon_poster import create_mastodon_post
+    MASTODON_AVAILABLE = True
+except ImportError:
+    MASTODON_AVAILABLE = False
+    print("Note: Mastodon posting not available (mastodon.py not installed)")
+
 def get_pacific_time():
     pacific = pytz.timezone('US/Pacific')
     return datetime.now(pacific).strftime('%Y-%m-%d')
@@ -237,7 +245,7 @@ Write your track review here. Keep it concise but descriptive. Focus on the soun
         with open(filepath, 'w') as f:
             f.write(content)
         
-        print(f"Markdown file saved to: {filepath}")
+        print(f"Markdown file created: {filepath}")
         return filepath, title, artist
         
     except Exception as e:
@@ -265,7 +273,7 @@ def main():
         print("\nScript stopped due to missing required information.")
         return
         
-    print(f"Created track file: {output_file}")
+    print(f"Image file created: {output_file}")
     
     # Build search query from scraped title and artist
     search_query = f"{title} {artist}"
@@ -352,6 +360,34 @@ def main():
                 print("Failed to post to Instagram. Check the error message above.")
         else:
             print(f"Error: Image file not found at {image_path}")
+    
+    # Ask if user wants to post to Mastodon
+    if MASTODON_AVAILABLE:
+        post_to_mastodon = input("\nWould you like to post this track to Mastodon? (y/n): ").lower().strip() == 'y'
+        
+        if post_to_mastodon:
+            # Get the image path from the markdown content
+            image_filename = os.path.basename(output_file).replace('.md', '.jpg')
+            image_path = os.path.join(os.path.expanduser(os.getenv('IMAGE_OUTPUT_PATH')), image_filename)
+            
+            if os.path.exists(image_path):
+                success = create_mastodon_post(
+                    image_path=image_path,
+                    title=title,
+                    artist=artist,
+                    review=review,
+                    bandcamp_url=url,
+                    spotify_url=spotify_link,
+                    youtube_url=youtube_link
+                )
+                if success:
+                    print("Successfully posted to Mastodon!")
+                else:
+                    print("Failed to post to Mastodon. Check the error message above.")
+            else:
+                print(f"Error: Image file not found at {image_path}")
+    else:
+        print("\nMastodon posting not available. Install mastodon.py to enable this feature.")
 
 if __name__ == "__main__":
     main() 

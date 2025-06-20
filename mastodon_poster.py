@@ -1,6 +1,6 @@
 import os
 import re
-from instagrapi import Client
+from mastodon import Mastodon
 from dotenv import load_dotenv
 
 def read_track_from_markdown(markdown_file_path):
@@ -66,7 +66,7 @@ def read_track_from_markdown(markdown_file_path):
 
 def get_hashtags():
     """
-    Prompt user to enter hashtags for the Instagram post.
+    Prompt user to enter hashtags for the Mastodon post.
     Returns a string of hashtags.
     """
     print("\nEnter hashtags for your post (one per line, press Enter twice to finish):")
@@ -86,9 +86,9 @@ def get_hashtags():
     
     return ' '.join(hashtags)
 
-def create_instagram_post(image_path, title, artist, review, bandcamp_url, spotify_url=None, youtube_url=None):
+def create_mastodon_post(image_path, title, artist, review, bandcamp_url, spotify_url=None, youtube_url=None):
     """
-    Create an Instagram post for a track review.
+    Create a Mastodon post for a track review.
     
     Args:
         image_path (str): Path to the track artwork
@@ -102,55 +102,65 @@ def create_instagram_post(image_path, title, artist, review, bandcamp_url, spoti
     # Load environment variables
     load_dotenv()
     
-    # Initialize Instagram client
-    client = Client()
-    
     try:
-        # Login to Instagram
-        username = os.getenv('INSTAGRAM_USERNAME')
-        password = os.getenv('INSTAGRAM_PASSWORD')
+        # Get Mastodon credentials
+        mastodon_url = os.getenv('MASTODON_URL')
+        access_token = os.getenv('MASTODON_ACCESS_TOKEN')
         
-        if not username or not password:
-            print("Error: Instagram credentials not found in .env file")
+        if not mastodon_url or not access_token:
+            print("Error: Mastodon credentials not found in .env file")
+            print("Please add MASTODON_URL and MASTODON_ACCESS_TOKEN to your .env file")
             return False
-            
-        client.login(username, password)
+        
+        # Initialize Mastodon client
+        mastodon = Mastodon(
+            access_token=access_token,
+            api_base_url=mastodon_url
+        )
         
         # Get hashtags from user
         hashtags = get_hashtags()
         
-        # Create caption
-        caption = f"""{title} by {artist}
+        # Create status text
+        status = f"""{title} by {artist}
 
 {review}
 
-Listen on Bandcamp, Spotify, and YouTube
-Link in bio 🔗
-
-{hashtags}"""
+Listen on Bandcamp: {bandcamp_url}"""
         
-        # Upload the photo
-        media = client.photo_upload(
-            image_path,
-            caption=caption
+        # Add optional links
+        if spotify_url:
+            status += f"\nSpotify: {spotify_url}"
+        if youtube_url:
+            status += f"\nYouTube: {youtube_url}"
+        
+        # Add hashtags
+        if hashtags:
+            status += f"\n\n{hashtags}"
+        
+        # Upload media first
+        print("Uploading image to Mastodon...")
+        media = mastodon.media_post(image_path, description=f"Album artwork for {title} by {artist}")
+        
+        # Post status with media
+        print("Posting to Mastodon...")
+        result = mastodon.status_post(
+            status,
+            media_ids=[media['id']],
+            visibility='public'  # Options: public, unlisted, private, direct
         )
         
-        print(f"Successfully posted to Instagram! Media ID: {media.id}")
+        print(f"Successfully posted to Mastodon! Post ID: {result['id']}")
+        print(f"Post URL: {result['url']}")
         return True
         
     except Exception as e:
-        print(f"Error posting to Instagram: {str(e)}")
+        print(f"Error posting to Mastodon: {str(e)}")
         return False
-    finally:
-        # Logout
-        try:
-            client.logout()
-        except:
-            pass
 
-def create_instagram_post_from_markdown(markdown_file_path):
+def create_mastodon_post_from_markdown(markdown_file_path):
     """
-    Create an Instagram post from a markdown file.
+    Create a Mastodon post from a markdown file.
     
     Args:
         markdown_file_path (str): Path to the markdown file
@@ -169,8 +179,8 @@ def create_instagram_post_from_markdown(markdown_file_path):
         print(f"Error: Image file not found at {track_data['image_path']}")
         return False
     
-    # Create Instagram post
-    return create_instagram_post(
+    # Create Mastodon post
+    return create_mastodon_post(
         image_path=track_data['image_path'],
         title=track_data['title'],
         artist=track_data['artist'],
@@ -180,27 +190,47 @@ def create_instagram_post_from_markdown(markdown_file_path):
         youtube_url=track_data['youtube_url']
     )
 
+def setup_mastodon_app():
+    """
+    Helper function to set up a Mastodon app and get access token.
+    This should be run once to generate the access token.
+    """
+    print("Setting up Mastodon app...")
+    print("You'll need to create a Mastodon app to get an access token.")
+    print("Follow these steps:")
+    print("1. Go to your Mastodon instance (e.g., https://mastodon.social)")
+    print("2. Go to Settings > Development > New Application")
+    print("3. Fill in the details:")
+    print("   - Application name: CardCreator")
+    print("   - Website: (leave blank or add your website)")
+    print("   - Redirect URI: urn:ietf:wg:oauth:2.0:oob")
+    print("   - Scopes: read write")
+    print("4. Submit and copy the access token")
+    print("5. Add it to your .env file as MASTODON_ACCESS_TOKEN")
+    print("6. Add your Mastodon instance URL as MASTODON_URL")
+    
+    return True
+
 if __name__ == "__main__":
-    print("Instagram Poster for CardCreator")
+    print("Mastodon Poster for CardCreator")
     print("=" * 40)
     
-    # Load environment variables
+    # Check if setup is needed
     load_dotenv()
-    
-    if not os.getenv('INSTAGRAM_USERNAME') or not os.getenv('INSTAGRAM_PASSWORD'):
-        print("Error: Instagram credentials not found in .env file")
-        print("Please add INSTAGRAM_USERNAME and INSTAGRAM_PASSWORD to your .env file")
+    if not os.getenv('MASTODON_ACCESS_TOKEN'):
+        print("Mastodon access token not found. Running setup...")
+        setup_mastodon_app()
     else:
-        print("Instagram credentials found. Ready to post!")
+        print("Mastodon credentials found. Ready to post!")
         
         # Ask for markdown file path
         markdown_file = input("\nEnter path to markdown file: ").strip()
         
         if os.path.exists(markdown_file):
-            success = create_instagram_post_from_markdown(markdown_file)
+            success = create_mastodon_post_from_markdown(markdown_file)
             if success:
-                print("Successfully posted to Instagram!")
+                print("Successfully posted to Mastodon!")
             else:
-                print("Failed to post to Instagram. Check the error message above.")
+                print("Failed to post to Mastodon. Check the error message above.")
         else:
             print(f"Error: Markdown file not found at {markdown_file}") 
