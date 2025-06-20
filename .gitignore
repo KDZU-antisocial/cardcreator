@@ -4,8 +4,5 @@ venv/
 *.pyc
 .DS_Store
 .env_template
+.cache
 .cache/
-images/instagram/*
-images/tracks/*
-!images/instagram/.gitkeep
-!images/tracks/.gitkeep 

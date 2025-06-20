@@ -11,11 +11,13 @@ A Python tool for automatically creating track review cards from Bandcamp URLs. 
 - Configurable output paths for images and markdown files
 - Uses modern Python tooling (uv, pip-tools)
 - Integrates with KDZU Astro website for track reviews
+- Automatically posts track reviews to Instagram with custom hashtags
 
 ## Prerequisites
 
 - Python 3.11 or higher
 - Chrome browser (for Selenium)
+- Instagram account (for posting)
 - API keys for:
   - Spotify (optional)
   - YouTube (optional)
@@ -51,6 +53,8 @@ SPOTIPY_CLIENT_SECRET=your_spotify_client_secret_here
 YOUTUBE_API_KEY=your_youtube_api_key_here
 MARKDOWN_OUTPUT_PATH=path/to/markdown/files
 IMAGE_OUTPUT_PATH=path/to/image/files
+INSTAGRAM_USERNAME=your_instagram_username
+INSTAGRAM_PASSWORD=your_instagram_password
 ```
 
 ## Usage
@@ -66,18 +70,42 @@ The script will:
 3. Download the track artwork
 4. Generate a markdown file with frontmatter
 5. Save files to the configured output paths
+6. Ask if you want to post to Instagram
+7. If yes, prompt for custom hashtags
+8. Post to Instagram with the track artwork and review
+
+### Instagram Post Format
+
+The Instagram post will include:
+- Track artwork as the main image
+- Track title and artist name
+- Your track review
+- Custom hashtags that you provide
+- Link to streaming services (in bio)
+
+Example caption:
+```
+Track Title by Artist Name
+
+Your track review here.
+
+Listen on Bandcamp, Spotify, and YouTube
+Link in bio 🔗
+
+#your #custom #hashtags #here
+```
 
 ## Project Structure
 
 ```
 cardcreator/
 ├── .venv/                  # Virtual environment
-├── images/                 # Local image storage
 ├── .env                    # Environment configuration
 ├── .env_template          # Template for environment variables
 ├── requirements.in        # Direct dependencies
 ├── requirements.txt       # Locked dependencies
 ├── card_creator.py        # Main script
+├── instagram_poster.py    # Instagram posting functionality
 └── _track.md.template     # Markdown template
 ```
 
@@ -102,6 +130,8 @@ uv pip install -r requirements.txt
 Required environment variables:
 - `MARKDOWN_OUTPUT_PATH`: Path where markdown files will be saved
 - `IMAGE_OUTPUT_PATH`: Path where images will be saved
+- `INSTAGRAM_USERNAME`: Your Instagram username
+- `INSTAGRAM_PASSWORD`: Your Instagram password
 
 Optional environment variables:
 - `SPOTIPY_CLIENT_ID`: Spotify API client ID
@@ -126,6 +156,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Selenium for dynamic content handling
 - Spotipy for Spotify integration
 - Google API Client for YouTube integration
+- Instagrapi for Instagram integration
 
 ## Website Integration
 
