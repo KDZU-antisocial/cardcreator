@@ -26,6 +26,41 @@ A Python tool for automatically creating track review cards from Bandcamp URLs. 
   - Spotify (optional)
   - YouTube (optional)
 
+## ⚠️ Python Version Compatibility
+
+**Important**: This project uses the `atproto` library for Bluesky integration, which currently has compatibility issues with Python 3.13. The `libipld` dependency (required by `atproto`) only supports Python versions up to 3.12.
+
+### Solutions:
+
+1. **Use Python 3.12 with uv (Recommended)**:
+   ```bash
+   uv venv --python 3.12
+   source .venv/bin/activate
+   uv pip install -r requirements.txt
+   ```
+
+2. **Use Python 3.12 with standard venv**:
+   ```bash
+   python3.12 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+3. **Set environment variable (Experimental)**:
+   If you must use Python 3.13, you can try setting this environment variable before installing:
+   ```bash
+   export PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1
+   uv venv
+   source .venv/bin/activate
+   uv pip install -r requirements.txt
+   ```
+   Note: This may cause other compatibility issues.
+
+### Checking Your Python Version:
+```bash
+python3 --version
+```
+
 ## Installation
 
 1. Clone the repository:
